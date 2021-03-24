@@ -1,3 +1,4 @@
+# fmt: off
 # requests is an optional library that can be found at http://docs.python-requests.org/en/latest/
 """This Python module provides some basic services for interacting with ScienceBase."""
 from __future__ import print_function
@@ -652,16 +653,21 @@ class SbSession:
                             retval.append(finfo)
         return retval
 
-    def download_file(self, url, local_filename, destination='.', progress_bar=False):
+    def download_file(self, url, local_filename, destination='.', progress_bar=False, overwrite=True):
         """Download file from URL
 
         :param url: ScienceBase Catalog Item file download URL
         :param local_filename: Name to use for the local file
         :param destination: Destination directory in which to store the files
         :param progress_bar: Boolean to turn on progress bar printing
+        :param: overwrite: Boolean to turn off automatic re-downloads
         :return: The full name and path of the downloaded file
         """
         complete_name = os.path.join(destination, local_filename)
+        
+        if os.path.exists(complete_name) and overwrite==False:
+            return complete_name            
+
         print("downloading " + url + " to " + complete_name)
         r = self._session.get(url, stream=True)        
         
@@ -693,17 +699,18 @@ class SbSession:
                 sys.stdout.write('\n')
         return complete_name
 
-    def get_item_files(self, item, destination='.', progress_bar=False):
+    def get_item_files(self, item, destination='.', progress_bar=False, overwrite=True):
         """Download the individual files attached to a ScienceBase Item
 
         :param item: ScienceBase Catalog Item JSON of the item from which to download files
         :param destination: Destination directory in which to store the files
         :param progress_bar: Boolean to turn on progress bar printing
+        :param: overwrite: Boolean to turn off automatic re-downloads
         :return: The ScienceBase Catalog file info JSON response
         """
         file_info = self.get_item_file_info(item)
         for file_info in file_info:            
-            self.download_file(file_info['url'], file_info['name'], destination, progress_bar)
+            self.download_file(file_info['url'], file_info['name'], destination, progress_bar, overwrite)
         return file_info
 
     def get_my_items_id(self):
